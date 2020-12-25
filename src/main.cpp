@@ -9,6 +9,7 @@
 #include <SPI.h>
 #include <PubSubClient.h>
 #include <ESP.h>
+#include <Button2.h>
 
 #include "driver/adc.h"
 #include <esp_wifi.h>
@@ -77,7 +78,7 @@ const int led = 13;
 #define SOIL_PIN 32
 #define BOOT_PIN 0
 #define POWER_CTRL 4
-#define USER_BUTTON 35
+#define WAKE_BUTTON 35
 
 BH1750 lightMeter(0x23); //0x23
 
@@ -97,12 +98,22 @@ String timeStamp1;
 #include <save-configuration.h>
 #include <connect-to-network.h>
 
+Button2 wakeButton(WAKE_BUTTON);
+
 void setup()
 {
   Serial.begin(115200);
   Serial.println("Void Setup");
 
-#include <module-parameter-management.h>
+    esp_sleep_wakeup_cause_t wakeupCause = esp_sleep_get_wakeup_cause();
+    Serial.println(wakeupCause);
+    switch (wakeupCause) {
+      case ESP_SLEEP_WAKEUP_TIMER:
+          Serial.println("wake_timer");
+          break;
+  }
+
+  #include <module-parameter-management.h>
 
   // Start WiFi and update time
   connectToNetwork();
@@ -253,4 +264,6 @@ void setup()
 
 void loop()
 {
+    wakeButton.loop();
+
 }

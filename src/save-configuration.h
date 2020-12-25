@@ -79,7 +79,8 @@ void saveConfiguration(const Config & config) {
 
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqttClient.state());
-    goToDeepSleepFiveMinutes();
+    return;
+    // goToDeepSleepFiveMinutes();
   }
 
   if (logging) {
