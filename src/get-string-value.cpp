@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include "get-string-value.h"
+
 String getValue(String data, char separator, int index)
 {
   int found = 0;

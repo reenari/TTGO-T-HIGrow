@@ -14,6 +14,16 @@
 #include "driver/adc.h"
 #include <esp_wifi.h>
 #include <esp_bt.h>
+
+#include "main.h"
+#include "file-management.h"
+#include "go-to-deep-sleep.h"
+#include "module-parameter-management.h"
+#include "read-sensors.h"
+#include "connect-to-network.h"
+#include "save-configuration.h"
+#include "time-management.h"
+
 #include "user-variables.h"
 
 // Logfile on SPIFFS
@@ -45,40 +55,9 @@ RTC_DATA_ATTR int sleep5no = 0;
 RTC_DATA_ATTR String battchargeDate = "";
 RTC_DATA_ATTR int battchargeDateCnt = 0;
 
-//json construct setup
-struct Config
-{
-  String date;
-  String time;
-  int bootno;
-  int sleep5no;
-  float lux;
-  float temp;
-  float humid;
-  float soil;
-  float salt;
-  String saltadvice;
-  float bat;
-  String batcharge;
-  String batchargeDate;
-  int batchargeDateCnt;
-  float batvolt;
-  float batvoltage;
-  String rel;
-};
 Config config;
 
 const int led = 13;
-
-#define I2C_SDA 25
-#define I2C_SCL 26
-#define DHT_PIN 16
-#define BAT_ADC 33
-#define SALT_PIN 34
-#define SOIL_PIN 32
-#define BOOT_PIN 0
-#define POWER_CTRL 4
-#define WAKE_BUTTON 35
 
 BH1750 lightMeter(0x23); //0x23
 
@@ -91,12 +70,12 @@ String dayStamp;
 String timeStamp1;
 
 // Start Subroutines
-#include <file-management.h>
-#include <go-to-deep-sleep.h>
-#include <get-string-value.h>
-#include <read-sensors.h>
-#include <save-configuration.h>
-#include <connect-to-network.h>
+//#include <file-management.cpp>
+//#include <go-to-deep-sleep.c>
+// #include <get-string-value.h>
+// #include <read-sensors.cpp>
+//#include <save-configuration.cpp>
+//#include <connect-to-network.cpp>
 
 Button2 wakeButton(WAKE_BUTTON);
 
@@ -113,9 +92,10 @@ void setup()
           break;
   }
 
-  #include <module-parameter-management.h>
+  read_configs();
+//  #include <module-parameter-management.c>
 
-  // Start WiFi and update time
+    // Start WiFi and update time
   connectToNetwork();
   Serial.println(" ");
   Serial.println("Connected to network");
@@ -135,9 +115,10 @@ void setup()
     timeClient.forceUpdate();
   }
 
-#include <time-management.h>
+  time_management(config);
+//#include <time-management.cpp>
 
-  dht.begin();
+    dht.begin();
   if (logging)
   {
     writeFile(SPIFFS, "/error.log", "DHT12 Begin OK! \n");
@@ -201,7 +182,7 @@ void setup()
   Serial.println(advice);
   config.saltadvice = advice;
 
-  float bat = readBattery();
+  float bat = readBattery(config);
   config.bat = bat;
   config.batcharge = "";
   if (bat > 130)

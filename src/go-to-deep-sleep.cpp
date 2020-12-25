@@ -1,7 +1,17 @@
+#include <Arduino.h>
+#include <SPIFFS.h>
+#include <WiFi.h>
+#include <esp_adc_cal.h>
+#include <esp_bt.h>
+#include <esp_wifi.h>
+
+#include "main.h"
+#include "file-management.h"
+
 void goToDeepSleep()
 {
   Serial.print("Going to sleep... ");
-  Serial.print(TIME_TO_SLEEP);
+  Serial.print((int)TIME_TO_SLEEP);
   Serial.println(" seconds");
   if (logging) {
     writeFile(SPIFFS, "/error.log", "Going to sleep for 3600 seconds \n");

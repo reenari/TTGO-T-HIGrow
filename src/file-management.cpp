@@ -1,3 +1,7 @@
+#include <Arduino.h>
+#include <FS.h>
+#include "file-management.h"
+
 void writeFile(fs::FS & fs, const char * path, const char * message) {
   Serial.printf("Writing file: %s\r\n", path);
 
@@ -13,14 +17,14 @@ void writeFile(fs::FS & fs, const char * path, const char * message) {
   }
 }
 
-void readFile(fs::FS & fs, const char * path) {
+String readFile(fs::FS & fs, const char * path) {
   //  Serial.printf("Reading file: %s\r\n", path);
   File file = fs.open(path);
   if (!file || file.isDirectory()) {
     Serial.println("- failed to open file for reading");
-    return;
+    return "";
   }
-
+  String readString;
   //  Serial.println("- read from file:");
   while (file.available()) {
     delay(2);  //delay to allow byte to arrive in input buffer
@@ -29,6 +33,7 @@ void readFile(fs::FS & fs, const char * path) {
   }
   //  Serial.println(readString);
   file.close();
+    return readString;
 }
 
 void listDir(fs::FS & fs, const char * dirname, uint8_t levels) {

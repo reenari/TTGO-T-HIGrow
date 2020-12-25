@@ -6,7 +6,7 @@
 const bool  logging = false;
 const bool  readLogfile = false;
 const bool  deleteLogfile = false;
-String readString; // do not change this variable
+//String readString; // do not change this variable
 
 // Select DHT type on the module - supported are DHT11, DHT12, DHT22
 //#define DHT_TYPE DHT11
@@ -46,8 +46,11 @@ const long  gmtOffset_sec = 3600;
 // Device configuration and name setting
 const String device_name = "Tgrow_HIGrow"; // Can be changed, but not necessary, as it will give no added value.
 
-#define uS_TO_S_FACTOR 1000000ULL //Conversion factor for micro seconds to seconds
-#define TIME_TO_SLEEP  3600       //Time ESP32 will go to sleep (in seconds)
+//#define uS_TO_S_FACTOR 1000000ULL //Conversion factor for micro seconds to seconds
+const uint64_t uS_TO_S_FACTOR=1000000ULL; //Conversion factor for micro seconds to seconds
+//#define TIME_TO_SLEEP  3600       //Time ESP32 will go to sleep (in seconds)
+//#define TIME_TO_SLEEP  60       //Time ESP32 will go to sleep (in seconds)
+const uint64_t TIME_TO_SLEEP = 300;
 
 const char broker[] = "192.168.1.64";
 int        port     = 1883;

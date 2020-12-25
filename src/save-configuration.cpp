@@ -1,3 +1,15 @@
+#include <Arduino.h>
+#include <ArduinoJson.h>
+#include <WiFi.h>
+#include <SPIFFS.h>
+#include <file-management.h>
+#include <go-to-deep-sleep.h>
+
+#include "main.h"
+
+#include <PubSubClient.h>
+extern PubSubClient mqttClient;
+
 // Allocate a  JsonDocument
 void saveConfiguration(const Config & config) {
 

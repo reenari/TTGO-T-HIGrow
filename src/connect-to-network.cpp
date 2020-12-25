@@ -1,3 +1,11 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <SPIFFS.h>
+#include <file-management.h>
+#include <go-to-deep-sleep.h>
+
+#include "main.h"
+
 void connectToNetwork() {
   Serial.print("Size of SSID array ");
   Serial.println(ssidArrNo);

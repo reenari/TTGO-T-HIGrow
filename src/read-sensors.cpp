@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include "main.h"
+
 // READ Sensors
 
 // READ Salt
@@ -35,7 +38,7 @@ uint16_t readSoil()
 }
 
 // READ Battery
-float readBattery()
+float readBattery(Config config)
 {
   int vref = 1100;
   uint16_t volt = analogRead(BAT_ADC);
