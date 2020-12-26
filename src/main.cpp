@@ -2,7 +2,6 @@
 #include <Wire.h>
 #include <BH1750.h>
 #include <DHT.h>
-#include <Adafruit_BME280.h>
 #include <WiFi.h>
 #include <NTPClient.h>
 #include <ArduinoJson.h>
@@ -33,8 +32,8 @@
 //           rel = "4.0.1"; // Error correction in connect network
 //           rel = "4.0.2"; // Organising subroutines, and functional code snippets.
 //           rel = "4.0.3"; // Adding battery charged date, and days since last charge
-const String rel = "4.0.4"; // Adding battery charged date, and days since last charge, added to SPIFFS so that data do not dissapear at reboot.
-
+//           rel = "4.0.4"; // Adding battery charged date, and days since last charge, added to SPIFFS so that data do not dissapear at reboot.
+const String rel = "4.0.5"; // Merged change from @reenari, and corrected counter days since last change
 // mqtt constants
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
@@ -81,7 +80,6 @@ const int led = 13;
 #define USER_BUTTON 35
 
 BH1750 lightMeter(0x23); //0x23
-Adafruit_BME280 bmp;     //0x77 Adafruit_BME280 is technically not used, but if removed the BH1750 will not work - Any suggestions why, would be appriciated.
 
 DHT dht(DHT_PIN, DHT_TYPE);
 
@@ -90,8 +88,6 @@ NTPClient timeClient(ntpUDP);
 String formattedDate;
 String dayStamp;
 String timeStamp1;
-
-bool bme_found = false;
 
 // Start Subroutines
 #include <file-management.h>
@@ -130,12 +126,6 @@ void setup()
 
 #include <time-management.h>
 
-  Wire.begin(I2C_SDA, I2C_SCL);
-  if (logging)
-  {
-    writeFile(SPIFFS, "/error.log", "Wire Begin OK! \n");
-  }
-
   dht.begin();
   if (logging)
   {
@@ -147,17 +137,21 @@ void setup()
   digitalWrite(POWER_CTRL, 1);
   delay(1000);
 
-  if (!bmp.begin())
+  bool wireOk = Wire.begin(I2C_SDA, I2C_SCL); // wire can not be initialized at beginng, the bus is busy
+  if (wireOk)
   {
-    Serial.println(F("This check must be done, otherwise the BH1750 does not initiate!!!!?????"));
-    bme_found = false;
+    Serial.println(F("Wire ok"));
+    if (logging)
+    {
+      writeFile(SPIFFS, "/error.log", "Wire Begin OK! \n");
+    }
   }
   else
   {
-    bme_found = true;
+    Serial.println(F("Wire NOK"));
   }
 
-  if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE))
+   if (lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE))
   {
     Serial.println(F("BH1750 Advanced begin"));
   }
@@ -166,7 +160,7 @@ void setup()
     Serial.println(F("Error initialising BH1750"));
   }
 
-  float luxRead = lightMeter.readLightLevel();
+  float luxRead = lightMeter.readLightLevel(); // 1st read seems to return 0 always
   Serial.print("lux ");
   Serial.println(luxRead);
   delay(2000);
@@ -214,20 +208,19 @@ void setup()
     writeFile(SPIFFS, "/batinfo.conf", batinfo_write);
   }
   config.batchargeDate = battchargeDate;
-  if (battchargeDate != config.date) {
-    battchargeDateCnt += 1;
-    // Save the data
-    SPIFFS.remove("/batinfo.conf");
-    String batinfo = String(battchargeDate) + ":" + String(battchargeDateCnt);
-    const char* batinfo_write = batinfo.c_str();
-    writeFile(SPIFFS, "/batinfo.conf", batinfo_write);
+  if (battchargeDate != config.date)
+  {
+    if (thisHour == 12 && thisMinute == 0)
+    {
+      battchargeDateCnt += 1;
+      // Save the data
+      SPIFFS.remove("/batinfo.conf");
+      String batinfo = String(battchargeDate) + ":" + String(battchargeDateCnt);
+      const char *batinfo_write = batinfo.c_str();
+      writeFile(SPIFFS, "/batinfo.conf", batinfo_write);
+    }
   }
   config.batchargeDateCnt = battchargeDateCnt;
-
-
-// >>>>>>>>>>>>>>>>>>> Husk at læse data
-
-
 
   if (bat > 100)
   {
