@@ -1,14 +1,24 @@
 #include <Arduino.h>
+#include <ctime>
 #include <NTPClient.h>
 #include <main.h>
+#include <WiFi.h>
+#include <time-management.h>
+
 
 extern NTPClient timeClient;
-extern String formattedDate;
-extern String dayStamp;
-extern String timeStamp1;
+String formattedDate;
+String dayStamp;
+String timeStamp1;
 
-
+#if 0
 void time_management(Config &config) {
+    timeClient.setTimeOffset(gmtOffset_sec);
+    while (!timeClient.update())
+    {
+        timeClient.forceUpdate();
+    }
+
     // The formattedDate comes with the following format:
     // 2018-05-28T16:00:13Z
     // We need to extract date and time
@@ -25,7 +35,8 @@ void time_management(Config &config) {
     timeStamp1 = formattedDate.substring(splitT + 1, formattedDate.length() - 1);
     config.time = timeStamp1.substring(0, 5);
     // variables needed for DST test
-    int thisHour = timeClient.getHours();
+    thisHour = timeClient.getHours();
+    thisMinute = timeClient.getMinutes();
     int thisDay = dateDay.toInt();
     int thisMonth = dateMonth.toInt();
     int thisWeekday = timeClient.getDay();
@@ -91,4 +102,37 @@ void time_management(Config &config) {
     } else {
         Serial.println("IN VINTERTIME");
     }
+}
+#endif
+
+TimeManagement::TimeManagement(int offset) {
+
+    auto *ntpUDP = new WiFiUDP;
+    this->timeClient = new NTPClient(*ntpUDP, offset);
+    this->timeClient->forceUpdate();
+    setenv("TZ", "EET-2EEST,M3.5.0/3,M10.5.0/4", 1);
+    tzset();
+
+}
+
+bool TimeManagement::update() {
+    return this->timeClient->update();
+}
+
+struct tm *TimeManagement::local() {
+    timeClient->update();
+    const long epochTime = timeClient->getEpochTime();
+    return localtime(&epochTime);
+
+}
+
+String TimeManagement::getCurrentDate() {
+    struct tm *timem= this->local();
+    time_t timer = mktime(timem);
+    Serial.println(ctime(&timer));
+    char buffer [6];
+    strftime(buffer, sizeof buffer, "%d-%m", timem);
+    Serial.println(buffer);
+
+    return String(buffer);
 }

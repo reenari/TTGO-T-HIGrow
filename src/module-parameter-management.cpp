@@ -75,7 +75,7 @@ void read_configs() {
 
 // Read battery charging info
     String readString = readFile(SPIFFS, "/batinfo.conf");
-    Serial.println("Here comes the calibration info:");
+    Serial.println("Here comes the battery info:");
     Serial.println(readString);
     String xval = getValue(readString, ':', 0);
     String yval = getValue(readString, ':', 1);

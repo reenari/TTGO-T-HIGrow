@@ -2,6 +2,7 @@
 // START userdefined data
 // *******************************************************************************************************************************
 #include <Arduino.h>
+#include "passwds.h"
 // Turn logging on/off - turn read logfile on/off, turn delete logfile on/off ---> default is false for all 3, otherwise it can cause battery drainage.
 const bool  logging = false;
 const bool  readLogfile = false;
@@ -33,15 +34,15 @@ String plant_name = "My_Test";
 
 
 // define your SSID's, and remember to fill out variable ssidArrNo with the number of your SSID's
-String ssidArr[] = {"Enterprise-pro", "Enterprise_EXT", "Enterprise_EXTN", "Enterprise" };
+String ssidArr[] = {WIFI_SSID, "Enterprise_EXT", "Enterprise_EXTN", "Enterprise" };
 int ssidArrNo = 4;
 
 const char* ssid = ""; // no need to fill in
-const char* password = "password";
+const char* password = WIFI_PASSWD;
 const char* ntpServer = "pool.ntp.org";
 
 // Off-sets for time, and summertime. each hour is 3.600 seconds.
-const long  gmtOffset_sec = 3600;
+const long  gmtOffset_sec = 7200;
 
 // Device configuration and name setting
 const String device_name = "Tgrow_HIGrow"; // Can be changed, but not necessary, as it will give no added value.
@@ -54,8 +55,8 @@ const uint64_t TIME_TO_SLEEP = 300;
 
 const char broker[] = "192.168.1.64";
 int        port     = 1883;
-const char mqttuser[] = ""; //add eventual mqtt username
-const char mqttpass[] = ""; //add eventual mqtt password
+const char mqttuser[] = MQTTUSER; //add eventual mqtt username
+const char mqttpass[] = MQTTPASS; //add eventual mqtt password
 
 // *******************************************************************************************************************************
 // END userdefined data

@@ -1,0 +1,13 @@
+//
+// Created by Ari Reen on 28/12/2020.
+//
+
+#ifndef TTGO_T_HIGROW_PASSWDS_H
+#define TTGO_T_HIGROW_PASSWDS_H
+
+#define WIFI_SSID ""
+#define WIFI_PASSWD ""
+#define MQTTUSER ""
+#define MQTTPASS ""
+
+#endif //TTGO_T_HIGROW_PASSWDS_H

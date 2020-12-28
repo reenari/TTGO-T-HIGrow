@@ -10,6 +10,7 @@
 #include <PubSubClient.h>
 #include <ESP.h>
 #include <Button2.h>
+#include <ctime>
 
 #include "driver/adc.h"
 #include <esp_wifi.h>
@@ -63,11 +64,6 @@ BH1750 lightMeter(0x23); //0x23
 
 DHT dht(DHT_PIN, DHT_TYPE);
 
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
-String formattedDate;
-String dayStamp;
-String timeStamp1;
 
 // Start Subroutines
 //#include <file-management.cpp>
@@ -78,6 +74,7 @@ String timeStamp1;
 //#include <connect-to-network.cpp>
 
 Button2 wakeButton(WAKE_BUTTON);
+TimeManagement *timeManagement;
 
 void setup()
 {
@@ -92,7 +89,21 @@ void setup()
           break;
   }
 
-  read_configs();
+    time_t now;
+    char strftime_buf[64];
+    struct tm timeinfo;
+
+    time(&now);
+    setenv("TZ", "EET", 1);
+    tzset();
+
+    localtime_r(&now, &timeinfo);
+    strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+
+    Serial.print("rtos time: ");
+    Serial.println(strftime_buf);
+
+    read_configs();
 //  #include <module-parameter-management.c>
 
     // Start WiFi and update time
@@ -109,13 +120,8 @@ void setup()
   //  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   //  timeClient.setTimeOffset(7200);
 
-  timeClient.setTimeOffset(gmtOffset_sec);
-  while (!timeClient.update())
-  {
-    timeClient.forceUpdate();
-  }
-
-  time_management(config);
+    timeManagement = new TimeManagement(0);
+  // time_management(config);
 //#include <time-management.cpp>
 
     dht.begin();
@@ -185,6 +191,8 @@ void setup()
   Serial.println(advice);
   config.saltadvice = advice;
 
+    config.date = timeManagement->getCurrentDate();
+    Serial.println(config.date);
   float bat = readBattery(config);
   config.bat = bat;
   config.batcharge = "";
@@ -200,9 +208,11 @@ void setup()
     writeFile(SPIFFS, "/batinfo.conf", batinfo_write);
   }
   config.batchargeDate = battchargeDate;
+
   if (battchargeDate != config.date)
   {
-    if (thisHour == 12 && thisMinute == 0)
+      struct tm *timem = timeManagement->local();
+    if (timem->tm_hour == 12 && timem->tm_min == 0)
     {
       battchargeDateCnt += 1;
       // Save the data
@@ -248,5 +258,7 @@ void setup()
 void loop()
 {
     wakeButton.loop();
+    timeManagement->update();
+
 
 }
