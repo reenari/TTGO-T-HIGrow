@@ -12,6 +12,10 @@
 #include <Button2.h>
 #include <ctime>
 
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <ESPDash.h>
+
 #include "driver/adc.h"
 #include <esp_wifi.h>
 #include <esp_bt.h>
@@ -73,8 +77,24 @@ DHT dht(DHT_PIN, DHT_TYPE);
 //#include <save-configuration.cpp>
 //#include <connect-to-network.cpp>
 
-Button2 wakeButton(WAKE_BUTTON);
+Button2 wakeButton;
+
+void sleepHandler(Button2 &b)
+{
+    Serial.println("Enter Deepsleep ...");
+    goToDeepSleep();
+}
+
 TimeManagement *timeManagement;
+
+AsyncWebServer webServer(80);
+ESPDash dashboard(&webServer);
+Card temperature(&dashboard, TEMPERATURE_CARD, "Temperature", "°C");
+Card humidity(&dashboard, HUMIDITY_CARD, "Humidity", "%");
+Card lux(&dashboard, GENERIC_CARD, "Light", "Lux");
+Card soil(&dashboard, HUMIDITY_CARD, "Soil", "%");
+Card salt(&dashboard, GENERIC_CARD, "Salt", "%");
+Card rrsi(&dashboard, GENERIC_CARD, "RSSI", "dBm");
 
 void setup()
 {
@@ -84,9 +104,15 @@ void setup()
     esp_sleep_wakeup_cause_t wakeupCause = esp_sleep_get_wakeup_cause();
     Serial.println(wakeupCause);
     switch (wakeupCause) {
+        case ESP_SLEEP_WAKEUP_UNDEFINED:
+            Serial.println("not from deep sleep");
+            break;
       case ESP_SLEEP_WAKEUP_TIMER:
           Serial.println("wake_timer");
           break;
+        case ESP_SLEEP_WAKEUP_EXT1:
+            Serial.println("button wake");
+            break;
   }
 
     time_t now;
@@ -251,14 +277,43 @@ void setup()
   Serial.println("Boot number: " + String(bootCount));
 
   //Go to sleep now
-  delay(1000);
-  goToDeepSleep();
+  if (wakeupCause != ESP_SLEEP_WAKEUP_EXT1) {
+      delay(1000);
+      goToDeepSleep();
+  }
+  Serial.println("setting button");
+  wakeButton.begin(WAKE_BUTTON);
+    wakeButton.setLongClickHandler(sleepHandler);
+    webServer.begin();
 }
+
 
 void loop()
 {
+    static const uint64_t interval = 2000;
+    static uint64_t timestamp;
+    static bool readTemp = true;
     wakeButton.loop();
-    timeManagement->update();
+  //  timeManagement->update();
+
+    if (millis() - timestamp > interval ) {
+        timestamp = millis();
+        if(readTemp) {
+            float t = dht.readTemperature();
+            temperature.update(t);
+        } else {
+            float h = dht.readHumidity();
+            humidity.update(h);
+        }
+        readTemp=!readTemp;
+        lux.update(lightMeter.readLightLevel());
+        soil.update(readSoil());
+        int saltValue = readSalt();
+        salt.update(saltValue);
+
+        rrsi.update(WiFi.RSSI());
+        dashboard.sendUpdates();
+    }
 
 
 }

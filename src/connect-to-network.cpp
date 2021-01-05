@@ -10,6 +10,10 @@ void connectToNetwork() {
   Serial.print("Size of SSID array ");
   Serial.println(ssidArrNo);
 
+  Serial.println(ssid);
+  Serial.print("'");
+  Serial.print(password);
+  Serial.println("'");
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.println("");

@@ -35,9 +35,9 @@ String plant_name = "My_Test";
 
 // define your SSID's, and remember to fill out variable ssidArrNo with the number of your SSID's
 String ssidArr[] = {WIFI_SSID, "Enterprise_EXT", "Enterprise_EXTN", "Enterprise" };
-int ssidArrNo = 4;
+int ssidArrNo = 1;
 
-const char* ssid = ""; // no need to fill in
+const char* ssid = WIFI_SSID; // no need to fill in
 const char* password = WIFI_PASSWD;
 const char* ntpServer = "pool.ntp.org";
 
